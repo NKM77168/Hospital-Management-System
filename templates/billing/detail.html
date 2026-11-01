@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+{% block title %}Invoice #{{ bill._id }} — MediCare HMS{% endblock %}
+{% block page_title %}Invoice{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h2>Invoice Detail</h2>
+    <div class="breadcrumb-text">
+      <i class="fa-solid fa-house me-1"></i> Dashboard /
+      <a href="{{ url_for('billing_list') }}" style="color:var(--text-muted);text-decoration:none;">Billing</a> /
+      <span class="text-primary-custom">Invoice</span>
+    </div>
+  </div>
+  <div class="d-flex gap-2">
+    <button onclick="printInvoice()" class="btn-outline-custom">
+      <i class="fa-solid fa-print"></i> Print
+    </button>
+    <a href="{{ url_for('billing_list') }}" class="btn-outline-custom">
+      <i class="fa-solid fa-arrow-left"></i> Back
+    </a>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-8">
+
+    <!-- Invoice Card -->
+    <div class="panel">
+
+      <!-- Invoice Header -->
+      <div class="invoice-header">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+          <div>
+            <div style="font-size:1.6rem;font-weight:700;letter-spacing:.5px;">MediCare HMS</div>
+            <div style="opacity:.7;font-size:.85rem;margin-top:.2rem;">
+              <i class="fa-solid fa-location-dot me-1"></i> 123, Healthcare Avenue, Medical District
+            </div>
+            <div style="opacity:.7;font-size:.85rem;">
+              <i class="fa-solid fa-phone me-1"></i> +91 98765 43210
+            </div>
+          </div>
+          <div class="text-end">
+            <div style="background:rgba(255,255,255,.15);padding:.35rem .9rem;border-radius:20px;font-size:.8rem;font-weight:600;display:inline-block;margin-bottom:.5rem;">
+              INVOICE
+            </div>
+            <div style="font-size:.82rem;opacity:.75;">Bill ID:</div>
+            <div style="font-size:.78rem;font-family:monospace;opacity:.6;">{{ bill._id }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-body">
+
+        <!-- Patient + Bill Info Row -->
+        <div class="row mb-4">
+          <div class="col-6">
+            <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);margin-bottom:.4rem;">Billed To</div>
+            <div class="fw-700" style="font-size:1rem;">{{ bill.patient_name }}</div>
+            {% if patient %}
+            <div style="font-size:.82rem;color:var(--text-secondary);">{{ patient.phone }}</div>
+            <div style="font-size:.82rem;color:var(--text-secondary);">{{ patient.email or '' }}</div>
+            <div style="font-size:.82rem;color:var(--text-secondary);">{{ patient.address or '' }}</div>
+            {% endif %}
+          </div>
+          <div class="col-6 text-end">
+            <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);margin-bottom:.4rem;">Bill Details</div>
+            <div style="font-size:.875rem;">
+              <span style="color:var(--text-secondary);">Bill Date:</span>
+              <span class="fw-600"> {{ bill.date }}</span>
+            </div>
+            <div style="font-size:.875rem;">
+              <span style="color:var(--text-secondary);">Created On:</span>
+              <span class="fw-600"> {{ bill.created_on.strftime('%d %b %Y %I:%M %p') if bill.created_on else '—' }}</span>
+            </div>
+            <div class="mt-2">
+              <span class="badge-status badge-{{ bill.payment_status | lower }}" style="font-size:.82rem;padding:.4rem 1rem;">
+                {{ bill.payment_status }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Services Table -->
+        <table style="width:100%;border-collapse:collapse;margin-bottom:1.5rem;">
+          <thead>
+            <tr style="background:var(--page-bg);">
+              <th style="padding:.75rem 1rem;text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.8px;color:var(--text-secondary);border-bottom:2px solid var(--border);">#</th>
+              <th style="padding:.75rem 1rem;text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.8px;color:var(--text-secondary);border-bottom:2px solid var(--border);">Service</th>
+              <th style="padding:.75rem 1rem;text-align:right;font-size:.72rem;text-transform:uppercase;letter-spacing:.8px;color:var(--text-secondary);border-bottom:2px solid var(--border);">Charge</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% set service_prices = {
+              'Consultation': 500, 'Lab Test': 800, 'X-Ray': 600,
+              'MRI Scan': 4500, 'CT Scan': 3500, 'Blood Test': 400,
+              'Urine Test': 300, 'ECG': 700, 'Ultrasound': 1200,
+              'Physiotherapy': 900, 'Surgery': 15000, 'ICU Charges': 5000,
+              'Room Charges': 2000, 'Medication': 600, 'Nursing': 1000
+            } %}
+            {% for s in bill.services %}
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:.7rem 1rem;color:var(--text-muted);font-size:.85rem;">{{ loop.index }}</td>
+              <td style="padding:.7rem 1rem;font-size:.9rem;font-weight:500;">{{ s }}</td>
+              <td style="padding:.7rem 1rem;text-align:right;font-size:.9rem;color:var(--text-secondary);">
+                ₹{{ "{:,}".format(service_prices.get(s, 0)) }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <!-- Total -->
+        <div class="d-flex justify-content-end">
+          <div style="min-width:220px;">
+            <div style="display:flex;justify-content:space-between;padding:.4rem 0;color:var(--text-secondary);font-size:.875rem;">
+              <span>Subtotal</span>
+              <span>₹{{ "{:,.2f}".format(bill.amount) }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:.4rem 0;color:var(--text-secondary);font-size:.875rem;">
+              <span>Tax (0%)</span>
+              <span>₹0.00</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:.75rem 1rem;background:var(--page-bg);border-radius:var(--radius-sm);margin-top:.5rem;border-top:2px solid var(--border);">
+              <span class="fw-700" style="font-size:1rem;">Total</span>
+              <span class="fw-700" style="font-size:1.2rem;color:var(--success);">₹{{ "{:,.2f}".format(bill.amount) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        {% if bill.notes %}
+        <div style="margin-top:1.25rem;padding:.85rem 1rem;background:rgba(0,180,216,.05);border-radius:var(--radius-sm);border-left:3px solid var(--primary);">
+          <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);margin-bottom:.3rem;">Notes</div>
+          <div style="font-size:.875rem;color:var(--text-secondary);">{{ bill.notes }}</div>
+        </div>
+        {% endif %}
+
+        <!-- Thank You -->
+        <div style="text-align:center;padding:1.25rem 0 .5rem;border-top:1px dashed var(--border);margin-top:1.5rem;">
+          <i class="fa-solid fa-heart" style="color:var(--danger);"></i>
+          <span style="font-size:.82rem;color:var(--text-muted);margin-left:.4rem;">Thank you for choosing MediCare Hospital. Get well soon!</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar Actions -->
+  <div class="col-12 col-lg-4">
+    <div class="panel">
+      <div class="panel-header">
+        <h5><i class="fa-solid fa-gear"></i> Actions</h5>
+      </div>
+      <div class="panel-body">
+
+        <!-- Update Payment Status -->
+        <div class="form-group">
+          <label class="form-label">Update Payment Status</label>
+          <form method="POST" action="{{ url_for('update_bill_status', bill_id=bill._id) }}" class="d-flex gap-2">
+            <select name="payment_status" class="form-control-custom">
+              <option value="Paid" {{ 'selected' if bill.payment_status == 'Paid' }}>Paid</option>
+              <option value="Pending" {{ 'selected' if bill.payment_status == 'Pending' }}>Pending</option>
+            </select>
+            <button type="submit" class="btn-primary-custom" style="white-space:nowrap;">
+              <i class="fa-solid fa-check"></i> Update
+            </button>
+          </form>
+        </div>
+
+        <hr style="border-color:var(--border);margin:1rem 0;">
+
+        <button onclick="printInvoice()" class="btn-outline-custom w-100 mb-2">
+          <i class="fa-solid fa-print me-1"></i> Print Invoice
+        </button>
+
+        {% if patient %}
+        <a href="{{ url_for('patient_detail', patient_id=patient._id) }}" class="btn-outline-custom w-100 mb-2">
+          <i class="fa-solid fa-user me-1"></i> View Patient Profile
+        </a>
+        {% endif %}
+
+        <form id="del-bill" method="POST" action="{{ url_for('delete_bill', bill_id=bill._id) }}">
+          <button type="button" class="btn-outline-custom w-100" style="border-color:var(--danger);color:var(--danger);"
+                  onclick="confirmDelete('del-bill', '{{ bill.patient_name }}\'s bill')">
+            <i class="fa-solid fa-trash me-1"></i> Delete Bill
+          </button>
+        </form>
+
+      </div>
+    </div>
+
+    <!-- Summary Card -->
+    <div class="panel mt-3" style="background:linear-gradient(135deg,rgba(6,214,160,.05),rgba(6,214,160,.1));border-color:rgba(6,214,160,.25);">
+      <div class="panel-body text-center">
+        <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);margin-bottom:.5rem;">Bill Total</div>
+        <div class="invoice-total">₹{{ "{:,.0f}".format(bill.amount) }}</div>
+        <div class="mt-2">
+          <span class="badge-status badge-{{ bill.payment_status | lower }}" style="font-size:.82rem;padding:.4rem 1rem;">
+            {{ bill.payment_status }}
+          </span>
+        </div>
+        <div style="font-size:.75rem;color:var(--text-muted);margin-top:.75rem;">
+          {{ bill.services|length }} service{{ 's' if bill.services|length != 1 }} billed
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  @media print {
+    .sidebar, .top-navbar, .page-header, .col-lg-4 { display: none !important; }
+    .main-content { margin-left: 0 !important; }
+    .col-lg-8 { width: 100% !important; max-width: 100% !important; flex: 0 0 100% !important; }
+    .panel { box-shadow: none !important; border: 1px solid #ddd !important; }
+  }
+</style>
+{% endblock %}

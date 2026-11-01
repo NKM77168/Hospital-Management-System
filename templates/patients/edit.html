@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% block title %}Edit Patient — MediCare HMS{% endblock %}
+{% block page_title %}Edit Patient{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h2>Edit Patient</h2>
+    <div class="breadcrumb-text">
+      <i class="fa-solid fa-house me-1"></i> Dashboard /
+      <a href="{{ url_for('patients_list') }}" style="color:var(--text-muted);text-decoration:none;">Patients</a> /
+      <a href="{{ url_for('patient_detail', patient_id=patient._id) }}" style="color:var(--text-muted);text-decoration:none;">{{ patient.name }}</a> /
+      <span class="text-primary-custom">Edit</span>
+    </div>
+  </div>
+  <a href="{{ url_for('patient_detail', patient_id=patient._id) }}" class="btn-outline-custom">
+    <i class="fa-solid fa-arrow-left"></i> Back to Profile
+  </a>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-8">
+    <div class="panel">
+      <div class="panel-header">
+        <h5><i class="fa-solid fa-pen"></i> Update Patient — {{ patient.name }}</h5>
+      </div>
+      <div class="panel-body">
+        <form method="POST"
+              action="{{ url_for('edit_patient', patient_id=patient._id) }}"
+              id="patient-form" novalidate>
+
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <div class="form-group">
+                <label class="form-label" for="name">Full Name <span style="color:var(--danger);">*</span></label>
+                <input type="text" id="name" name="name" class="form-control-custom"
+                       value="{{ patient.name }}" required />
+              </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+              <div class="form-group">
+                <label class="form-label" for="age">Age <span style="color:var(--danger);">*</span></label>
+                <input type="number" id="age" name="age" class="form-control-custom"
+                       value="{{ patient.age }}" min="1" max="150" required />
+              </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+              <div class="form-group">
+                <label class="form-label" for="gender">Gender <span style="color:var(--danger);">*</span></label>
+                <select id="gender" name="gender" class="form-control-custom" required>
+                  {% for g in ['Male', 'Female', 'Other'] %}
+                  <option value="{{ g }}" {{ 'selected' if patient.gender == g }}>{{ g }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+              <div class="form-group">
+                <label class="form-label" for="blood_group">Blood Group</label>
+                <select id="blood_group" name="blood_group" class="form-control-custom">
+                  <option value="">Unknown</option>
+                  {% for bg in ['A+','A-','B+','B-','AB+','AB-','O+','O-'] %}
+                  <option value="{{ bg }}" {{ 'selected' if patient.blood_group == bg }}>{{ bg }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <div class="col-6 col-md-4">
+              <div class="form-group">
+                <label class="form-label" for="phone">Phone <span style="color:var(--danger);">*</span></label>
+                <input type="tel" id="phone" name="phone" class="form-control-custom"
+                       value="{{ patient.phone }}" required />
+              </div>
+            </div>
+
+            <div class="col-12 col-md-5">
+              <div class="form-group">
+                <label class="form-label" for="email">Email Address</label>
+                <input type="email" id="email" name="email" class="form-control-custom"
+                       value="{{ patient.email or '' }}" />
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="form-group">
+                <label class="form-label" for="address">Address</label>
+                <textarea id="address" name="address" class="form-control-custom" rows="2">{{ patient.address or '' }}</textarea>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="form-group">
+                <label class="form-label" for="medical_history">Medical History</label>
+                <textarea id="medical_history" name="medical_history" class="form-control-custom" rows="3">{{ patient.medical_history or '' }}</textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 mt-2">
+            <button type="submit" class="btn-primary-custom">
+              <i class="fa-solid fa-floppy-disk"></i> Save Changes
+            </button>
+            <a href="{{ url_for('patient_detail', patient_id=patient._id) }}" class="btn-outline-custom">
+              <i class="fa-solid fa-xmark"></i> Cancel
+            </a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Info -->
+  <div class="col-12 col-lg-4">
+    <div class="panel">
+      <div class="panel-header">
+        <h5><i class="fa-solid fa-circle-user"></i> Current Info</h5>
+      </div>
+      <div class="panel-body">
+        <div class="text-center mb-3">
+          <div class="avatar avatar-blue mx-auto mb-2" style="width:64px;height:64px;font-size:1.4rem;">
+            {{ patient.name[:2].upper() }}
+          </div>
+          <div class="fw-700">{{ patient.name }}</div>
+          <div style="font-size:.8rem;color:var(--text-muted);">
+            ID: {{ patient._id }}
+          </div>
+        </div>
+        <div class="info-row">
+          <i class="fa-solid fa-calendar"></i>
+          <span class="info-label">Registered</span>
+          <span>{{ patient.registered_on.strftime('%d %b %Y') if patient.registered_on else '—' }}</span>
+        </div>
+        <div class="info-row">
+          <i class="fa-solid fa-droplet"></i>
+          <span class="info-label">Blood Group</span>
+          <span>{{ patient.blood_group or '—' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

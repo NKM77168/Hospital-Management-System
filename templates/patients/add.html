@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% block title %}Register Patient — MediCare HMS{% endblock %}
+{% block page_title %}Register Patient{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h2>Register New Patient</h2>
+    <div class="breadcrumb-text">
+      <i class="fa-solid fa-house me-1"></i> Dashboard /
+      <a href="{{ url_for('patients_list') }}" style="color:var(--text-muted);text-decoration:none;">Patients</a> /
+      <span class="text-primary-custom">Register</span>
+    </div>
+  </div>
+  <a href="{{ url_for('patients_list') }}" class="btn-outline-custom">
+    <i class="fa-solid fa-arrow-left"></i> Back to Patients
+  </a>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-8">
+    <div class="panel">
+      <div class="panel-header">
+        <h5><i class="fa-solid fa-user-plus"></i> Patient Information</h5>
+      </div>
+      <div class="panel-body">
+        <form method="POST" action="{{ url_for('add_patient') }}" id="patient-form" novalidate>
+
+          <div class="row g-3">
+            <!-- Full Name -->
+            <div class="col-12 col-md-6">
+              <div class="form-group">
+                <label class="form-label" for="name">
+                  <i class="fa-solid fa-user me-1"></i> Full Name <span style="color:var(--danger);">*</span>
+                </label>
+                <input type="text" id="name" name="name" class="form-control-custom"
+                       placeholder="e.g. Arjun Sharma"
+                       value="{{ form_data.get('name', '') }}" required />
+              </div>
+            </div>
+
+            <!-- Age -->
+            <div class="col-6 col-md-3">
+              <div class="form-group">
+                <label class="form-label" for="age">
+                  Age <span style="color:var(--danger);">*</span>
+                </label>
+                <input type="number" id="age" name="age" class="form-control-custom"
+                       placeholder="e.g. 30" min="1" max="150"
+                       value="{{ form_data.get('age', '') }}" required />
+              </div>
+            </div>
+
+            <!-- Gender -->
+            <div class="col-6 col-md-3">
+              <div class="form-group">
+                <label class="form-label" for="gender">
+                  Gender <span style="color:var(--danger);">*</span>
+                </label>
+                <select id="gender" name="gender" class="form-control-custom" required>
+                  <option value="">Select</option>
+                  {% for g in ['Male', 'Female', 'Other'] %}
+                  <option value="{{ g }}" {{ 'selected' if form_data.get('gender') == g }}>{{ g }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <!-- Blood Group -->
+            <div class="col-6 col-md-3">
+              <div class="form-group">
+                <label class="form-label" for="blood_group">Blood Group</label>
+                <select id="blood_group" name="blood_group" class="form-control-custom">
+                  <option value="">Unknown</option>
+                  {% for bg in ['A+','A-','B+','B-','AB+','AB-','O+','O-'] %}
+                  <option value="{{ bg }}" {{ 'selected' if form_data.get('blood_group') == bg }}>{{ bg }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <!-- Phone -->
+            <div class="col-6 col-md-4">
+              <div class="form-group">
+                <label class="form-label" for="phone">
+                  <i class="fa-solid fa-phone me-1"></i> Phone <span style="color:var(--danger);">*</span>
+                </label>
+                <input type="tel" id="phone" name="phone" class="form-control-custom"
+                       placeholder="10-digit number"
+                       value="{{ form_data.get('phone', '') }}" required />
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div class="col-12 col-md-5">
+              <div class="form-group">
+                <label class="form-label" for="email">
+                  <i class="fa-solid fa-envelope me-1"></i> Email Address
+                </label>
+                <input type="email" id="email" name="email" class="form-control-custom"
+                       placeholder="patient@email.com"
+                       value="{{ form_data.get('email', '') }}" />
+              </div>
+            </div>
+
+            <!-- Address -->
+            <div class="col-12">
+              <div class="form-group">
+                <label class="form-label" for="address">
+                  <i class="fa-solid fa-location-dot me-1"></i> Address
+                </label>
+                <textarea id="address" name="address" class="form-control-custom"
+                          placeholder="Street, City, State, PIN"
+                          rows="2">{{ form_data.get('address', '') }}</textarea>
+              </div>
+            </div>
+
+            <!-- Medical History -->
+            <div class="col-12">
+              <div class="form-group">
+                <label class="form-label" for="medical_history">
+                  <i class="fa-solid fa-notes-medical me-1"></i> Medical History
+                </label>
+                <textarea id="medical_history" name="medical_history" class="form-control-custom"
+                          placeholder="Known allergies, chronic conditions, previous surgeries…"
+                          rows="3">{{ form_data.get('medical_history', '') }}</textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="d-flex gap-2 mt-2">
+            <button type="submit" class="btn-primary-custom">
+              <i class="fa-solid fa-floppy-disk"></i> Register Patient
+            </button>
+            <a href="{{ url_for('patients_list') }}" class="btn-outline-custom">
+              <i class="fa-solid fa-xmark"></i> Cancel
+            </a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tips Sidebar -->
+  <div class="col-12 col-lg-4">
+    <div class="panel" style="background:linear-gradient(135deg,rgba(0,180,216,.05),rgba(72,202,228,.08));border-color:rgba(0,180,216,.2);">
+      <div class="panel-header">
+        <h5><i class="fa-solid fa-circle-info"></i> Registration Tips</h5>
+      </div>
+      <div class="panel-body">
+        <ul style="padding-left:1.2rem;color:var(--text-secondary);font-size:.85rem;line-height:2;">
+          <li>Fields marked <span style="color:var(--danger);">*</span> are required.</li>
+          <li>Phone number should be 10–15 digits only.</li>
+          <li>Blood group helps in emergency situations.</li>
+          <li>Medical history improves doctor's diagnosis.</li>
+          <li>Email is used for appointment notifications.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="panel mt-3">
+      <div class="panel-header">
+        <h5><i class="fa-solid fa-droplet"></i> Blood Groups</h5>
+      </div>
+      <div class="panel-body">
+        <div class="d-flex flex-wrap gap-2">
+          {% for bg in ['A+','A-','B+','B-','AB+','AB-','O+','O-'] %}
+          <span style="background:rgba(0,180,216,.1);color:var(--primary-dark);padding:.3rem .7rem;border-radius:20px;font-size:.8rem;font-weight:600;border:1px solid rgba(0,180,216,.2);">
+            {{ bg }}
+          </span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

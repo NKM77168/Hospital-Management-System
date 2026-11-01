@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% block title %}Book Appointment — MediCare HMS{% endblock %}
+{% block page_title %}Book Appointment{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h2>Book Appointment</h2>
+    <div class="breadcrumb-text">
+      <i class="fa-solid fa-house me-1"></i> Dashboard /
+      <a href="{{ url_for('appointments_list') }}" style="color:var(--text-muted);text-decoration:none;">Appointments</a> /
+      <span class="text-primary-custom">Book</span>
+    </div>
+  </div>
+  <a href="{{ url_for('appointments_list') }}" class="btn-outline-custom">
+    <i class="fa-solid fa-arrow-left"></i> Back
+  </a>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-8">
+    <div class="panel">
+      <div class="panel-header">
+        <h5><i class="fa-solid fa-calendar-plus"></i> Appointment Details</h5>
+      </div>
+      <div class="panel-body">
+        <form method="POST" action="{{ url_for('add_appointment') }}" id="appointment-form" novalidate>
+
+          <div class="row g-3">
+            <!-- Patient -->
+            <div class="col-12">
+              <div class="form-group">
+                <label class="form-label" for="patient_id">
+                  <i class="fa-solid fa-user-injured me-1"></i> Select Patient <span style="color:var(--danger);">*</span>
+                </label>
+                <select id="patient_id" name="patient_id" class="form-control-custom" required>
+                  <option value="">— Choose Patient —</option>
+                  {% for p in patients %}
+                  <option value="{{ p._id }}"
+                    {{ 'selected' if form_data.get('patient_id') == str(p._id) }}>
+                    {{ p.name }} — {{ p.phone }}
+                  </option>
+                  {% endfor %}
+                </select>
+                {% if not patients %}
+                <div style="font-size:.78rem;color:var(--warning);margin-top:.35rem;">
+                  <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                  No patients found. <a href="{{ url_for('add_patient') }}">Register a patient first</a>.
+                </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Doctor -->
+            <div class="col-12 col-md-6">
+              <div class="form-group">
+                <label class="form-label" for="doctor">
+                  <i class="fa-solid fa-user-doctor me-1"></i> Doctor Name <span style="color:var(--danger);">*</span>
+                </label>
+                <input type="text" id="doctor" name="doctor" class="form-control-custom"
+                       placeholder="e.g. Dr. Anil Kumar"
+                       value="{{ form_data.get('doctor', '') }}" required />
+              </div>
+            </div>
+
+            <!-- Department -->
+            <div class="col-12 col-md-6">
+              <div class="form-group">
+                <label class="form-label" for="department">
+                  <i class="fa-solid fa-hospital me-1"></i> Department <span style="color:var(--danger);">*</span>
+                </label>
+                <select id="department" name="department" class="form-control-custom" required>
+                  <option value="">— Select Department —</option>
+                  {% for dept in [
+                    'General Medicine', 'Cardiology', 'Neurology', 'Orthopaedics',
+                    'Gynaecology', 'Paediatrics', 'Dermatology', 'ENT',
+                    'Ophthalmology', 'Psychiatry', 'Radiology', 'Surgery',
+                    'Urology', 'Oncology', 'Endocrinology'
+                  ] %}
+                  <option value="{{ dept }}" {{ 'selected' if form_data.get('department') == dept }}>{{ dept }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <!-- Date -->
+            <div class="col-6">
+              <div class="form-group">
+                <label class="form-label" for="date">
+                  <i class="fa-regular fa-calendar me-1"></i> Date <span style="color:var(--danger);">*</span>
+                </label>
+                <input type="date" id="date" name="date" class="form-control-custom"
+                       value="{{ form_data.get('date', '') }}" required />
+              </div>
+            </div>
+
+            <!-- Time -->
+            <div class="col-6">
+              <div class="form-group">
+                <label class="form-label" for="time">
+                  <i class="fa-regular fa-clock me-1"></i> Time <span style="color:var(--danger);">*</span>
+                </label>
+                <select id="time" name="time" class="form-control-custom" required>
+                  <option value="">— Select Time —</option>
+                  {% for h in range(9, 18) %}
+                  {% for m in ['00', '30'] %}
+                  {% set t = '%02d:%s' % (h, m) %}
+                  <option value="{{ t }}" {{ 'selected' if form_data.get('time') == t }}>
+                    {{ t }} {{ 'AM' if h < 12 else 'PM' }}
+                  </option>
+                  {% endfor %}
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="col-12">
+              <div class="form-group">
+                <label class="form-label" for="notes">Notes (Optional)</label>
+                <textarea id="notes" name="notes" class="form-control-custom" rows="2"
+                          placeholder="Reason for visit, special instructions…">{{ form_data.get('notes', '') }}</textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 mt-2">
+            <button type="submit" class="btn-primary-custom">
+              <i class="fa-solid fa-calendar-check"></i> Book Appointment
+            </button>
+            <a href="{{ url_for('appointments_list') }}" class="btn-outline-custom">
+              <i class="fa-solid fa-xmark"></i> Cancel
+            </a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info Panel -->
+  <div class="col-12 col-lg-4">
+    <div class="panel" style="background:linear-gradient(135deg,rgba(155,93,229,.05),rgba(155,93,229,.1));border-color:rgba(155,93,229,.2);">
+      <div class="panel-header">
+        <h5><i class="fa-solid fa-stethoscope"></i> Departments</h5>
+      </div>
+      <div class="panel-body">
+        <div class="d-flex flex-wrap gap-1">
+          {% for dept in ['Cardiology','Neurology','Orthopaedics','Gynaecology','Dermatology','ENT','Surgery','Oncology'] %}
+          <span style="background:rgba(155,93,229,.1);color:#6a3db5;padding:.25rem .65rem;border-radius:20px;font-size:.75rem;font-weight:500;border:1px solid rgba(155,93,229,.2);">
+            {{ dept }}
+          </span>
+          {% endfor %}
+          <span style="font-size:.75rem;color:var(--text-muted);padding:.25rem .4rem;">and more…</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel mt-3">
+      <div class="panel-header">
+        <h5><i class="fa-solid fa-clock"></i> Available Hours</h5>
+      </div>
+      <div class="panel-body">
+        <div class="info-row" style="border:none;padding:.4rem 0;">
+          <i class="fa-solid fa-sun"></i>
+          <span class="info-label">Morning</span>
+          <span>09:00 – 12:00</span>
+        </div>
+        <div class="info-row" style="border:none;padding:.4rem 0;">
+          <i class="fa-solid fa-cloud-sun"></i>
+          <span class="info-label">Afternoon</span>
+          <span>14:00 – 17:30</span>
+        </div>
+        <p style="font-size:.78rem;color:var(--text-muted);margin-top:.5rem;">
+          Slots are available every 30 minutes.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

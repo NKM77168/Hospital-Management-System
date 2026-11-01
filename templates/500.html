@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}500 Server Error — MediCare HMS{% endblock %}
+{% block page_title %}500{% endblock %}
+{% block content %}
+<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;">
+  <div style="font-size:6rem;font-weight:800;background:linear-gradient(135deg,var(--danger),#ff7096);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;">500</div>
+  <h2 style="margin-top:.5rem;font-size:1.4rem;color:var(--text-primary);">Internal Server Error</h2>
+  <p style="color:var(--text-secondary);margin:.75rem 0 1.5rem;">Something went wrong on our end. Please try again or contact support.</p>
+  <a href="{{ url_for('dashboard') }}" class="btn-primary-custom">
+    <i class="fa-solid fa-house"></i> Back to Dashboard
+  </a>
+</div>
+{% endblock %}

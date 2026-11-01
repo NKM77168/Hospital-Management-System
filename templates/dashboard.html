@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — MediCare HMS{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- ── Stat Cards ── -->
+<div class="row g-3 mb-4">
+
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="stat-card blue">
+      <div class="stat-icon"><i class="fa-solid fa-user-injured"></i></div>
+      <div>
+        <div class="stat-value">{{ total_patients }}</div>
+        <div class="stat-label">Total Patients</div>
+        <div class="stat-sub">Registered in system</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="stat-card green">
+      <div class="stat-icon"><i class="fa-solid fa-calendar-check"></i></div>
+      <div>
+        <div class="stat-value">{{ total_appointments }}</div>
+        <div class="stat-label">Total Appointments</div>
+        <div class="stat-sub">{{ today_appointments }} scheduled today</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="stat-card yellow">
+      <div class="stat-icon"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+      <div>
+        <div class="stat-value">₹{{ "{:,.0f}".format(total_revenue) }}</div>
+        <div class="stat-label">Total Revenue</div>
+        <div class="stat-sub">From paid bills</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="stat-card red">
+      <div class="stat-icon"><i class="fa-solid fa-file-invoice"></i></div>
+      <div>
+        <div class="stat-value">{{ pending_bills }}</div>
+        <div class="stat-label">Pending Bills</div>
+        <div class="stat-sub">Awaiting payment</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Row 2: Chart + Upcoming Appointments ── -->
+<div class="row g-3 mb-4">
+
+  <!-- Revenue Chart -->
+  <div class="col-12 col-lg-7">
+    <div class="panel h-100">
+      <div class="panel-header">
+        <h5><i class="fa-solid fa-chart-bar"></i> Monthly Revenue</h5>
+        <span style="font-size:.75rem; color:var(--text-muted);">Last 6 months</span>
+      </div>
+      <div class="panel-body">
+        <div class="chart-container">
+          <canvas id="revenueChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upcoming Appointments -->
+  <div class="col-12 col-lg-5">
+    <div class="panel h-100">
+      <div class="panel-header">
+        <h5><i class="fa-solid fa-calendar-day"></i> Upcoming Appointments</h5>
+        <a href="{{ url_for('appointments_list') }}" class="btn-outline-custom" style="padding:.3rem .75rem;font-size:.75rem;">
+          View All
+        </a>
+      </div>
+      <div>
+        {% if upcoming_appointments %}
+          {% for appt in upcoming_appointments %}
+          <div style="padding:.85rem 1.25rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:.75rem;">
+            <div class="avatar avatar-purple" style="width:38px;height:38px;font-size:.75rem;">
+              {{ appt.patient_name[:2].upper() }}
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div class="fw-600" style="font-size:.875rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                {{ appt.patient_name }}
+              </div>
+              <div style="font-size:.75rem; color:var(--text-secondary);">
+                <i class="fa-regular fa-clock me-1"></i>{{ appt.date }} at {{ appt.time }}
+              </div>
+            </div>
+            <span class="badge-status badge-{{ appt.status | lower }}">{{ appt.status }}</span>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state"><i class="fa-regular fa-calendar-xmark"></i><p>No upcoming appointments.</p></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Row 3: Recent Patients ── -->
+<div class="row g-3">
+  <div class="col-12">
+    <div class="panel">
+      <div class="panel-header">
+        <h5><i class="fa-solid fa-user-clock"></i> Recently Registered Patients</h5>
+        <a href="{{ url_for('add_patient') }}" class="btn-primary-custom" style="padding:.4rem .9rem;font-size:.8rem;">
+          <i class="fa-solid fa-plus"></i> Register New
+        </a>
+      </div>
+
+      {% if recent_patients %}
+      <div class="table-responsive">
+        <table class="table-custom">
+          <thead>
+            <tr>
+              <th>Patient</th>
+              <th>Age / Gender</th>
+              <th>Blood Group</th>
+              <th>Phone</th>
+              <th>Registered On</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in recent_patients %}
+            {% set colors = ['avatar-blue','avatar-green','avatar-purple','avatar-orange'] %}
+            <tr data-href="{{ url_for('patient_detail', patient_id=p._id) }}">
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="avatar {{ colors[loop.index0 % 4] }}">{{ p.name[:2].upper() }}</div>
+                  <div>
+                    <div class="fw-600">{{ p.name }}</div>
+                    <div style="font-size:.73rem;color:var(--text-muted);">{{ p.email or '—' }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>{{ p.age }} yrs / {{ p.gender }}</td>
+              <td>
+                <span style="background:rgba(0,180,216,.1);color:var(--primary-dark);padding:.2rem .6rem;border-radius:20px;font-size:.78rem;font-weight:600;">
+                  {{ p.blood_group or '—' }}
+                </span>
+              </td>
+              <td>{{ p.phone }}</td>
+              <td>{{ p.registered_on.strftime('%d %b %Y') if p.registered_on else '—' }}</td>
+              <td>
+                <div class="d-flex gap-2">
+                  <a href="{{ url_for('patient_detail', patient_id=p._id) }}" class="btn-icon view" title="View">
+                    <i class="fa-solid fa-eye"></i>
+                  </a>
+                  <a href="{{ url_for('edit_patient', patient_id=p._id) }}" class="btn-icon edit" title="Edit">
+                    <i class="fa-solid fa-pen"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <div class="empty-state"><i class="fa-solid fa-user-plus"></i><p>No patients registered yet. <a href="{{ url_for('add_patient') }}">Register the first patient</a>.</p></div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Revenue Chart
+  const ctx = document.getElementById('revenueChart');
+  if (ctx) {
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: {{ chart_labels | tojson }},
+        datasets: [{
+          label: 'Revenue (₹)',
+          data: {{ chart_values | tojson }},
+          backgroundColor: 'rgba(0,180,216,0.15)',
+          borderColor: 'rgba(0,180,216,0.9)',
+          borderWidth: 2,
+          borderRadius: 6,
+          hoverBackgroundColor: 'rgba(0,180,216,0.3)',
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => '₹' + ctx.parsed.y.toLocaleString('en-IN')
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: 'rgba(0,0,0,0.05)' },
+            ticks: {
+              callback: v => '₹' + v.toLocaleString('en-IN'),
+              font: { size: 11 }
+            }
+          },
+          x: {
+            grid: { display: false },
+            ticks: { font: { size: 11 } }
+          }
+        }
+      }
+    });
+  }
+</script>
+{% endblock %}

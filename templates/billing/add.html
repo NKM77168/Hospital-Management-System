@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% block title %}Create Bill — MediCare HMS{% endblock %}
+{% block page_title %}Create Bill{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h2>Create Bill</h2>
+    <div class="breadcrumb-text">
+      <i class="fa-solid fa-house me-1"></i> Dashboard /
+      <a href="{{ url_for('billing_list') }}" style="color:var(--text-muted);text-decoration:none;">Billing</a> /
+      <span class="text-primary-custom">Create</span>
+    </div>
+  </div>
+  <a href="{{ url_for('billing_list') }}" class="btn-outline-custom">
+    <i class="fa-solid fa-arrow-left"></i> Back
+  </a>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-8">
+    <div class="panel">
+      <div class="panel-header">
+        <h5><i class="fa-solid fa-file-invoice-dollar"></i> Bill Information</h5>
+      </div>
+      <div class="panel-body">
+        <form method="POST" action="{{ url_for('add_bill') }}" id="bill-form" novalidate>
+
+          <div class="row g-3">
+            <!-- Patient -->
+            <div class="col-12">
+              <div class="form-group">
+                <label class="form-label" for="patient_id">
+                  <i class="fa-solid fa-user-injured me-1"></i> Select Patient <span style="color:var(--danger);">*</span>
+                </label>
+                <select id="patient_id" name="patient_id" class="form-control-custom" required>
+                  <option value="">— Choose Patient —</option>
+                  {% for p in patients %}
+                  <option value="{{ p._id }}"
+                    {{ 'selected' if form_data.get('patient_id') == str(p._id) }}>
+                    {{ p.name }} — {{ p.phone }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <!-- Services -->
+            <div class="col-12">
+              <div class="form-group">
+                <label class="form-label">
+                  <i class="fa-solid fa-stethoscope me-1"></i> Services <span style="color:var(--danger);">*</span>
+                  <span style="font-weight:400;color:var(--text-muted);text-transform:none;font-size:.75rem;">(Amount auto-calculated)</span>
+                </label>
+                <div class="services-group" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.5rem;padding:1rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);">
+                  {% for service in services_list %}
+                  <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.875rem;padding:.3rem;">
+                    <input type="checkbox" name="services" value="{{ service }}" class="service-checkbox"
+                           {{ 'checked' if service in (form_data.getlist('services') if form_data else []) }}
+                           style="width:16px;height:16px;accent-color:var(--primary);cursor:pointer;" />
+                    {{ service }}
+                  </label>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Amount -->
+            <div class="col-12 col-md-4">
+              <div class="form-group">
+                <label class="form-label" for="amount">
+                  <i class="fa-solid fa-indian-rupee-sign me-1"></i> Amount (₹) <span style="color:var(--danger);">*</span>
+                </label>
+                <input type="number" id="amount" name="amount" class="form-control-custom"
+                       placeholder="0.00" min="0" step="0.01"
+                       value="{{ form_data.get('amount', '0') }}" required />
+                <div style="font-size:.73rem;color:var(--text-muted);margin-top:.3rem;">
+                  Auto-calculated based on services. You can edit manually.
+                </div>
+              </div>
+            </div>
+
+            <!-- Billing Date -->
+            <div class="col-12 col-md-4">
+              <div class="form-group">
+                <label class="form-label" for="date">
+                  <i class="fa-regular fa-calendar me-1"></i> Billing Date <span style="color:var(--danger);">*</span>
+                </label>
+                <input type="date" id="date" name="date" class="form-control-custom"
+                       value="{{ form_data.get('date', '') }}" required />
+              </div>
+            </div>
+
+            <!-- Payment Status -->
+            <div class="col-12 col-md-4">
+              <div class="form-group">
+                <label class="form-label" for="payment_status">Payment Status</label>
+                <select id="payment_status" name="payment_status" class="form-control-custom">
+                  {% for s in ['Pending', 'Paid'] %}
+                  <option value="{{ s }}" {{ 'selected' if form_data.get('payment_status', 'Pending') == s }}>{{ s }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="col-12">
+              <div class="form-group">
+                <label class="form-label" for="notes">Notes (Optional)</label>
+                <textarea id="notes" name="notes" class="form-control-custom" rows="2"
+                          placeholder="Additional billing remarks…">{{ form_data.get('notes', '') }}</textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 mt-2">
+            <button type="submit" class="btn-primary-custom">
+              <i class="fa-solid fa-file-invoice"></i> Generate Bill
+            </button>
+            <a href="{{ url_for('billing_list') }}" class="btn-outline-custom">
+              <i class="fa-solid fa-xmark"></i> Cancel
+            </a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Price Guide -->
+  <div class="col-12 col-lg-4">
+    <div class="panel" style="background:linear-gradient(135deg,rgba(6,214,160,.04),rgba(6,214,160,.08));border-color:rgba(6,214,160,.2);">
+      <div class="panel-header">
+        <h5><i class="fa-solid fa-indian-rupee-sign"></i> Service Price Guide</h5>
+      </div>
+      <div class="panel-body" style="padding:1rem;">
+        <table style="width:100%;font-size:.8rem;border-collapse:collapse;">
+          {% set prices = [
+            ('Consultation', 500), ('Lab Test', 800), ('X-Ray', 600),
+            ('MRI Scan', 4500), ('CT Scan', 3500), ('Blood Test', 400),
+            ('ECG', 700), ('Ultrasound', 1200), ('Physiotherapy', 900),
+            ('Surgery', 15000), ('ICU Charges', 5000),
+            ('Room Charges', 2000), ('Medication', 600), ('Nursing', 1000),
+          ] %}
+          {% for name, price in prices %}
+          <tr style="border-bottom:1px solid rgba(6,214,160,.15);">
+            <td style="padding:.35rem .2rem;color:var(--text-secondary);">{{ name }}</td>
+            <td style="padding:.35rem .2rem;text-align:right;font-weight:600;color:var(--success);">₹{{ "{:,}".format(price) }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

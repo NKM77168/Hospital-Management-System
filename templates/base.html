@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="MediCare Hospital Management System — Manage patients, appointments, and billing efficiently." />
+  <title>{% block title %}MediCare HMS{% endblock %}</title>
+
+  <!-- Bootstrap 5 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <!-- ═══════ SIDEBAR ═══════ -->
+  <aside class="sidebar" id="sidebar">
+    <a href="{{ url_for('dashboard') }}" class="sidebar-brand">
+      <div class="brand-icon">
+        <i class="fa-solid fa-hospital-user"></i>
+      </div>
+      <div class="brand-text">
+        <div class="brand-name">MediCare HMS</div>
+        <div class="brand-sub">Hospital System</div>
+      </div>
+    </a>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Main</div>
+
+      <a href="{{ url_for('dashboard') }}"
+         class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span>Dashboard</span>
+      </a>
+
+      <div class="nav-section-title">Management</div>
+
+      <a href="{{ url_for('patients_list') }}"
+         class="nav-link {% if 'patient' in request.endpoint %}active{% endif %}">
+        <i class="fa-solid fa-user-injured"></i>
+        <span>Patients</span>
+      </a>
+
+      <a href="{{ url_for('appointments_list') }}"
+         class="nav-link {% if 'appointment' in request.endpoint %}active{% endif %}">
+        <i class="fa-solid fa-calendar-check"></i>
+        <span>Appointments</span>
+      </a>
+
+      <a href="{{ url_for('billing_list') }}"
+         class="nav-link {% if 'bill' in request.endpoint %}active{% endif %}">
+        <i class="fa-solid fa-file-invoice-dollar"></i>
+        <span>Billing</span>
+      </a>
+
+      <div class="nav-section-title">Quick Actions</div>
+
+      <a href="{{ url_for('add_patient') }}"
+         class="nav-link {% if request.endpoint == 'add_patient' %}active{% endif %}">
+        <i class="fa-solid fa-user-plus"></i>
+        <span>Register Patient</span>
+      </a>
+
+      <a href="{{ url_for('add_appointment') }}"
+         class="nav-link {% if request.endpoint == 'add_appointment' %}active{% endif %}">
+        <i class="fa-solid fa-calendar-plus"></i>
+        <span>Book Appointment</span>
+      </a>
+
+      <a href="{{ url_for('add_bill') }}"
+         class="nav-link {% if request.endpoint == 'add_bill' %}active{% endif %}">
+        <i class="fa-solid fa-plus-circle"></i>
+        <span>Create Bill</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <i class="fa-solid fa-shield-halved me-1"></i>
+      MediCare HMS &copy; 2024
+    </div>
+  </aside>
+
+  <!-- ═══════ MAIN CONTENT ═══════ -->
+  <div class="main-content">
+
+    <!-- Top Navbar -->
+    <header class="top-navbar">
+      <div class="d-flex align-items-center gap-3">
+        <button class="btn p-0 d-md-none border-0" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+          <i class="fa-solid fa-bars fa-lg"></i>
+        </button>
+        <span class="page-title">{% block page_title %}Dashboard{% endblock %}</span>
+      </div>
+
+      <div class="navbar-right">
+        <span class="datetime-badge">
+          <i class="fa-regular fa-clock me-1"></i>
+          <span id="datetime-display"></span>
+        </span>
+        <div class="d-flex align-items-center gap-2">
+          <div class="avatar avatar-blue" title="Admin">A</div>
+          <span class="fw-600 d-none d-sm-inline" style="font-size:.85rem;">Admin</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Flash Messages -->
+    <div class="px-4 pt-3" id="flash-container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="flash-alert flash-{{ category }}">
+              {% if category == 'success' %}<i class="fa-solid fa-circle-check"></i>
+              {% elif category == 'danger' %}<i class="fa-solid fa-circle-xmark"></i>
+              {% elif category == 'warning' %}<i class="fa-solid fa-triangle-exclamation"></i>
+              {% else %}<i class="fa-solid fa-circle-info"></i>
+              {% endif %}
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+    </div>
+
+    <!-- Page Content -->
+    <main class="page-content">
+      {% block content %}{% endblock %}
+    </main>
+
+  </div><!-- /.main-content -->
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- Custom JS -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

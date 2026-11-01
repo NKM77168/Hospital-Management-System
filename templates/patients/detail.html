@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% block title %}{{ patient.name }} — MediCare HMS{% endblock %}
+{% block page_title %}Patient Profile{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h2>Patient Profile</h2>
+    <div class="breadcrumb-text">
+      <i class="fa-solid fa-house me-1"></i> Dashboard /
+      <a href="{{ url_for('patients_list') }}" style="color:var(--text-muted);text-decoration:none;">Patients</a> /
+      <span class="text-primary-custom">{{ patient.name }}</span>
+    </div>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('edit_patient', patient_id=patient._id) }}" class="btn-primary-custom">
+      <i class="fa-solid fa-pen"></i> Edit
+    </a>
+    <form id="del-patient" method="POST" action="{{ url_for('delete_patient', patient_id=patient._id) }}">
+      <button type="button" class="btn-outline-custom" style="border-color:var(--danger);color:var(--danger);"
+              onclick="confirmDelete('del-patient', '{{ patient.name }}')">
+        <i class="fa-solid fa-trash"></i> Delete
+      </button>
+    </form>
+    <a href="{{ url_for('patients_list') }}" class="btn-outline-custom">
+      <i class="fa-solid fa-arrow-left"></i> Back
+    </a>
+  </div>
+</div>
+
+<div class="row g-3">
+
+  <!-- Left: Patient Info -->
+  <div class="col-12 col-lg-4">
+    <div class="panel">
+      <!-- Header -->
+      <div class="detail-header">
+        <div class="detail-avatar">{{ patient.name[:2].upper() }}</div>
+        <div>
+          <h3>{{ patient.name }}</h3>
+          <p><i class="fa-solid fa-id-card me-1"></i> Patient ID: {{ patient._id }}</p>
+          <p><i class="fa-solid fa-calendar me-1"></i>
+             Registered: {{ patient.registered_on.strftime('%d %b %Y') if patient.registered_on else '—' }}
+          </p>
+        </div>
+      </div>
+      <!-- Details -->
+      <div class="panel-body">
+        <div class="info-row">
+          <i class="fa-solid fa-cake-candles"></i>
+          <span class="info-label">Age</span>
+          <span>{{ patient.age }} years</span>
+        </div>
+        <div class="info-row">
+          <i class="fa-solid fa-venus-mars"></i>
+          <span class="info-label">Gender</span>
+          <span>{{ patient.gender }}</span>
+        </div>
+        <div class="info-row">
+          <i class="fa-solid fa-droplet"></i>
+          <span class="info-label">Blood Group</span>
+          <span>
+            <span style="background:rgba(239,71,111,.1);color:var(--danger);padding:.2rem .65rem;border-radius:20px;font-weight:700;font-size:.85rem;">
+              {{ patient.blood_group or 'Unknown' }}
+            </span>
+          </span>
+        </div>
+        <div class="info-row">
+          <i class="fa-solid fa-phone"></i>
+          <span class="info-label">Phone</span>
+          <a href="tel:{{ patient.phone }}" style="color:var(--primary);text-decoration:none;">{{ patient.phone }}</a>
+        </div>
+        <div class="info-row">
+          <i class="fa-solid fa-envelope"></i>
+          <span class="info-label">Email</span>
+          <span>{{ patient.email or '—' }}</span>
+        </div>
+        <div class="info-row">
+          <i class="fa-solid fa-location-dot"></i>
+          <span class="info-label">Address</span>
+          <span style="font-size:.82rem;">{{ patient.address or '—' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Medical History -->
+    <div class="panel mt-3">
+      <div class="panel-header">
+        <h5><i class="fa-solid fa-notes-medical"></i> Medical History</h5>
+      </div>
+      <div class="panel-body">
+        <p style="font-size:.875rem;color:var(--text-secondary);white-space:pre-line;">
+          {{ patient.medical_history or 'No medical history recorded.' }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Billing Summary -->
+    <div class="panel mt-3" style="background:linear-gradient(135deg,rgba(6,214,160,.05),rgba(6,214,160,.1));border-color:rgba(6,214,160,.2);">
+      <div class="panel-body text-center">
+        <i class="fa-solid fa-indian-rupee-sign fa-2x" style="color:var(--success);margin-bottom:.5rem;"></i>
+        <div style="font-size:1.6rem;font-weight:700;color:var(--text-primary);">₹{{ "{:,.0f}".format(total_billed) }}</div>
+        <div style="font-size:.78rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.8px;">Total Billed</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Appointments + Bills -->
+  <div class="col-12 col-lg-8">
+
+    <!-- Appointments -->
+    <div class="panel mb-3">
+      <div class="panel-header">
+        <h5><i class="fa-solid fa-calendar-check"></i> Appointments ({{ appointments|length }})</h5>
+        <a href="{{ url_for('add_appointment') }}" class="btn-primary-custom" style="padding:.35rem .85rem;font-size:.78rem;">
+          <i class="fa-solid fa-plus"></i> Book
+        </a>
+      </div>
+      {% if appointments %}
+      <div class="table-responsive">
+        <table class="table-custom">
+          <thead>
+            <tr>
+              <th>Doctor</th>
+              <th>Department</th>
+              <th>Date & Time</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in appointments %}
+            <tr>
+              <td class="fw-600">{{ a.doctor }}</td>
+              <td style="color:var(--text-secondary);">{{ a.department }}</td>
+              <td style="font-size:.82rem;">{{ a.date }} at {{ a.time }}</td>
+              <td><span class="badge-status badge-{{ a.status | lower }}">{{ a.status }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <div class="empty-state" style="padding:1.5rem;">
+          <i class="fa-regular fa-calendar"></i>
+          <p>No appointments yet for this patient.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Bills -->
+    <div class="panel">
+      <div class="panel-header">
+        <h5><i class="fa-solid fa-file-invoice-dollar"></i> Bills ({{ bills|length }})</h5>
+        <a href="{{ url_for('add_bill') }}" class="btn-primary-custom" style="padding:.35rem .85rem;font-size:.78rem;">
+          <i class="fa-solid fa-plus"></i> Create Bill
+        </a>
+      </div>
+      {% if bills %}
+      <div class="table-responsive">
+        <table class="table-custom">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Services</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for b in bills %}
+            <tr>
+              <td style="font-size:.82rem;">{{ b.date }}</td>
+              <td>
+                {% for s in b.services[:2] %}
+                <span class="service-tag">{{ s }}</span>
+                {% endfor %}
+                {% if b.services|length > 2 %}
+                  <span class="service-tag">+{{ b.services|length - 2 }} more</span>
+                {% endif %}
+              </td>
+              <td class="fw-700 text-success-custom">₹{{ "{:,.0f}".format(b.amount) }}</td>
+              <td><span class="badge-status badge-{{ b.payment_status | lower }}">{{ b.payment_status }}</span></td>
+              <td>
+                <a href="{{ url_for('bill_detail', bill_id=b._id) }}" class="btn-icon view">
+                  <i class="fa-solid fa-eye"></i>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <div class="empty-state" style="padding:1.5rem;">
+          <i class="fa-solid fa-receipt"></i>
+          <p>No bills created for this patient yet.</p>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

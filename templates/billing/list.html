@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}Billing — MediCare HMS{% endblock %}
+{% block page_title %}Billing Management{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h2>Billing Management</h2>
+    <div class="breadcrumb-text">
+      <i class="fa-solid fa-house me-1"></i> Dashboard /
+      <span class="text-primary-custom">Billing</span>
+    </div>
+  </div>
+  <a href="{{ url_for('add_bill') }}" class="btn-primary-custom">
+    <i class="fa-solid fa-plus"></i> Create Bill
+  </a>
+</div>
+
+<!-- Filter -->
+<div class="panel mb-3">
+  <div class="panel-body" style="padding:1rem 1.5rem;">
+    <form method="GET" class="d-flex gap-2 flex-wrap align-items-end">
+      <div>
+        <label class="form-label" style="margin-bottom:.3rem;">Filter by Payment Status</label>
+        <select name="status" class="form-control-custom" style="min-width:180px;" onchange="this.form.submit()">
+          <option value="">All Bills</option>
+          <option value="Paid" {{ 'selected' if status_filter == 'Paid' }}>Paid Only</option>
+          <option value="Pending" {{ 'selected' if status_filter == 'Pending' }}>Pending Only</option>
+        </select>
+      </div>
+      {% if status_filter %}
+      <a href="{{ url_for('billing_list') }}" class="btn-outline-custom">
+        <i class="fa-solid fa-xmark"></i> Clear
+      </a>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<!-- Bills Table -->
+<div class="panel">
+  <div class="panel-header">
+    <h5><i class="fa-solid fa-list"></i> Bills ({{ bills|length }})</h5>
+    <div style="font-size:.8rem;color:var(--text-secondary);">
+      Total: <strong class="text-success-custom">
+        ₹{{ "{:,.0f}".format(bills | selectattr('payment_status', 'equalto', 'Paid') | map(attribute='amount') | sum) }}
+      </strong> collected
+    </div>
+  </div>
+
+  {% if bills %}
+  <div class="table-responsive">
+    <table class="table-custom">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Patient</th>
+          <th>Services</th>
+          <th>Date</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in bills %}
+        <tr data-href="{{ url_for('bill_detail', bill_id=b._id) }}">
+          <td style="color:var(--text-muted);font-size:.8rem;">{{ loop.index }}</td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div class="avatar avatar-orange" style="width:32px;height:32px;font-size:.72rem;">
+                {{ b.patient_name[:2].upper() }}
+              </div>
+              <span class="fw-600" style="font-size:.875rem;">{{ b.patient_name }}</span>
+            </div>
+          </td>
+          <td>
+            {% for s in b.services[:2] %}
+            <span class="service-tag">{{ s }}</span>
+            {% endfor %}
+            {% if b.services|length > 2 %}
+            <span class="service-tag">+{{ b.services|length - 2 }}</span>
+            {% endif %}
+          </td>
+          <td style="font-size:.875rem;color:var(--text-secondary);">{{ b.date }}</td>
+          <td>
+            <span class="fw-700" style="font-size:.95rem;color:{% if b.payment_status == 'Paid' %}var(--success){% else %}#d4a017{% endif %};">
+              ₹{{ "{:,.0f}".format(b.amount) }}
+            </span>
+          </td>
+          <td>
+            <span class="badge-status badge-{{ b.payment_status | lower }}">{{ b.payment_status }}</span>
+          </td>
+          <td>
+            <div class="d-flex gap-1">
+              <a href="{{ url_for('bill_detail', bill_id=b._id) }}" class="btn-icon view" title="View Invoice">
+                <i class="fa-solid fa-eye"></i>
+              </a>
+              <form id="del-bill-{{ b._id }}" method="POST"
+                    action="{{ url_for('delete_bill', bill_id=b._id) }}"
+                    style="display:inline;">
+                <button type="button" class="btn-icon del" title="Delete"
+                        onclick="confirmDelete('del-bill-{{ b._id }}', '{{ b.patient_name }}\'s bill')">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="empty-state">
+      <i class="fa-solid fa-receipt"></i>
+      <p>No bills found{% if status_filter %} with status "{{ status_filter }}"{% endif %}.</p>
+      <a href="{{ url_for('add_bill') }}" class="btn-primary-custom mt-2">
+        <i class="fa-solid fa-plus"></i> Create First Bill
+      </a>
+    </div>
+  {% endif %}
+</div>
+
+{% endblock %}
